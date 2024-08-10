@@ -4,6 +4,23 @@ const constant = require("../../constant/constant");
 const generateOtp = require("../../utils/generateOtp");
 const generatePassword = require("../../utils/generatePassword");
 
+const getUserToken = (userType) => {
+  let token;
+  if (userType == "admin") {
+    token = {
+      accessToken: Model.User.getToken("author"),
+      refreshToken: Model.User.getToken("author", "refreshToken"),
+    };
+  } else {
+    token = {
+      accessToken: Model.User.getToken(),
+      refreshToken: Model.User.getToken("", "refreshToken"),
+    };
+  }
+
+  return token;
+};
+
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -33,7 +50,7 @@ exports.login = async (req, res) => {
   }
 };
 
-exports.create = async (req, res) => {
+exports.signup = async (req, res) => {
   const body = req.body;
 
   try {
@@ -90,7 +107,9 @@ exports.createPassword = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    let user = await Model.User.findOne({ email }).select("email password");
+    let user = await Model.User.findOne({ email }).select(
+      "email password firstName lastName"
+    );
     if (!user) {
       return res.status(sCode.NOT_FOUND).json({
         msg: constant.user.INVALID_EMAIL,
@@ -99,13 +118,66 @@ exports.createPassword = async (req, res) => {
     }
 
     user.password = password;
-    await user.save();
+    user = await user.save();
+
+    const data = {
+      user,
+      token: getUserToken("user"),
+    };
 
     return res
       .status(sCode.OK)
-      .json({ msg: constant.user.PASS_CREATED, success: true });
+      .json({ data, msg: constant.user.PASS_CREATED, success: true });
   } catch (error) {
     console.error("Error during creating password:", error.message);
     res.status(500).json({ msg: "Server error" });
+  }
+};
+
+exports.getUserData = async (req, res) => {
+  try {
+    const data = await Model.User.findById(req.user.userId).select("-password");
+    if (!data) {
+      return res
+        .status(sCode.NOT_FOUND)
+        .json({ msg: constant.NOT_FOUND, success: false });
+    }
+    return res.status(sCode.OK).json({ data, success: true });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.getUserById = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const data = await Model.User.findById(userId).select("-password");
+    if (!data) {
+      return res
+        .status(sCode.NOT_FOUND)
+        .json({ msg: constant.NOT_FOUND, success: false });
+    }
+    return res.status(sCode.OK).json({ data, success: true });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.updateRecord = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const body = req.body;
+    const data = await Model.User.findByIdAndUpdate(userId, {
+      $set: body,
+    });
+
+    if (!data) {
+      return res
+        .status(sCode.NOT_FOUND)
+        .json({ msg: constant.NOT_FOUND, success: false });
+    }
+    return res.status(sCode.OK).json({ msg: constant.UPDATED_RECORD, success: true });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };

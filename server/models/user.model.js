@@ -51,4 +51,31 @@ userSchema.methods.match = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
+userSchema.methods.getToken = function (
+  userType = "user",
+  tokenType = "accessToken"
+) {
+  if (["user", "client"].includes(userType)) {
+    if (tokenType == "accessToken") {
+      return jwt.sign({ id: this.id }, jwtSecret, {
+        expiresIn: jwtUserExpire,
+      });
+    } else {
+      return jwt.sign({ id: this.id }, jwtRefreshSecret, {
+        expiresIn: jwtUserRefreshExpire,
+      });
+    }
+  } else {
+    if (tokenType == "accessToken") {
+      return jwt.sign({ id: this.id }, jwtSecret, {
+        expiresIn: jwtAdminExpire,
+      });
+    } else {
+      return jwt.sign({ id: this.id }, jwtRefreshSecret, {
+        expiresIn: jwtAdminRefreshExpire,
+      });
+    }
+  }
+};
+
 module.exports = mongoose.model("user", userSchema, "user");

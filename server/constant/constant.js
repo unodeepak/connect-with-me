@@ -1,6 +1,7 @@
 module.exports = {
   OTP_SENT: "Otp send successfully",
   INVALID_OTP: "Invalid Otp",
+  UPDATED_RECORD: "Record Update",
   NOT_FOUND: "Resource not found",
   INVALID_CREDENTIALS: "Invalid credentials",
   SUCCESS: "Operation successful",
