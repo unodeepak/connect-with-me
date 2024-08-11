@@ -14,4 +14,8 @@ module.exports = {
     INVALID_EMAIL: "Invalid email id",
     PASS_CREATED: "Password created successfully",
   },
+
+  project: {
+    ADDED: "Client added successfully",
+  },
 };

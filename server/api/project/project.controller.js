@@ -1,49 +1,61 @@
+const constant = require("../../constant/constant");
 const sCode = require("../../constant/statusCode");
 const Model = require("../../models");
 
 exports.createProject = async (req, res) => {
   try {
-    const project = await Model.Project.create(req.body);
+    req.body.userId = req.user._id;
+    await Model.Project.create(req.body);
     return res
       .status(sCode.CREATED)
-      .json({ message: "Project created successfully", project });
+      .json({ msg: constant.project.ADDED, success: true });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: "Server error", error: error.message });
+    return res.status(500).json({ msg: "Server error", error: error.message });
   }
 };
 
 exports.getProjectByProjectId = async (req, res) => {
   try {
-    const project = await Project.findById(req.params.id);
-    if (!project) {
-      return res.status(404).json({ message: "Project not found" });
+    const projectId = req.params.projectId;
+    const data = await Model.Project.findById(projectId);
+    if (!data) {
+      return res
+        .status(sCode.NOT_FOUND)
+        .json({ msg: "Not Found", success: false });
     }
-    res.status(200).json(project);
+    return res.status(sCode.OK).json({ data, success: true });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ msg: "Server error", error: error.message });
   }
 };
 
 exports.getProjectByUserId = async (req, res) => {
   try {
-    const projects = await Project.find({ userId: req.params.userId });
-    res.status(200).json(projects);
+    const userId = req.params.userId;
+    const data = await Model.Project.find({ userId });
+    return res.status(sCode.OK).json({ data, success: true });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ msg: "Server error", error: error.message });
   }
 };
 
 exports.updateProject = async (req, res) => {
   try {
-    const project = await Project.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
-    if (!project) {
-      return res.status(404).json({ message: "Project not found" });
+    const projectId = req.params.id;
+    const body = req.body;
+    const data = await Model.Project.findByIdAndUpdate(
+      projectId,
+      { $set: body },
+      {
+        new: true,
+      }
+    );
+    if (!data) {
+      return res
+        .status(sCode.NOT_FOUND)
+        .json({ msg: constant.NOT_FOUND, success: false });
     }
-    res.status(200).json({ message: "Project updated successfully", project });
+    res.status(sCode.OK).json({ message: constant.UPDATED_RECORD, data });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }

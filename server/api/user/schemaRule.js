@@ -1,5 +1,18 @@
 const Joi = require("joi");
 module.exports = {
+  login: {
+    body: {
+      email: Joi.string().email().required(),
+      password: Joi.string().required(),
+    },
+  },
+  signup: {
+    body: {
+      firstName: Joi.string().required(),
+      lastName: Joi.string().required(),
+      email: Joi.string().email().lowercase().required(),
+    },
+  },
   updateRecord: {
     body: {
       firstName: Joi.string().optional(),
