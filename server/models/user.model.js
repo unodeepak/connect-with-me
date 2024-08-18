@@ -1,11 +1,14 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const userSchema = new mongoose.Schema(
   {
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     email: { type: String, required: true, unique: true, lowercase: true },
+    isVerifiedEmail: { type: Boolean, default: false },
+    isVerifiedPhone: { type: Boolean, default: false },
     password: { type: String, required: true },
     phoneNumber: { type: String },
     linkedinUri: { type: String },
@@ -28,6 +31,48 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["user", "client", "admin"],
       default: "user",
+    },
+    bankDetails: {
+      accountHolderName: {
+        type: String,
+        trim: true,
+        maxlength: 100,
+      },
+      accountNumber: {
+        type: String,
+        trim: true,
+        minlength: 10,
+        maxlength: 20,
+      },
+      bankName: {
+        type: String,
+        trim: true,
+        maxlength: 100,
+      },
+      branchName: {
+        type: String,
+        trim: true,
+        maxlength: 100,
+      },
+      ifscCode: {
+        type: String,
+        trim: true,
+        uppercase: true,
+        minlength: 11,
+        maxlength: 11,
+        validate: {
+          validator: function (v) {
+            return /^[A-Z]{4}0[A-Z0-9]{6}$/.test(v);
+          },
+          message: (props) => `${props.value} is not a valid IFSC code!`,
+        },
+      },
+      accountType: {
+        type: String,
+        required: true,
+        enum: ["Savings", "Current", "Salary", "Fixed Deposit"],
+        default: "Savings",
+      },
     },
   },
   { timestamps: true }
@@ -55,6 +100,13 @@ userSchema.methods.getToken = function (
   userType = "user",
   tokenType = "accessToken"
 ) {
+  const jwtSecret = process.env.jwtSecret;
+  const jwtUserExpire = process.env.jwtUserExpire;
+  const jwtRefreshSecret = process.env.jwtRefreshSecret;
+  const jwtUserRefreshExpire = process.env.jwtUserRefreshExpire;
+  const jwtAdminExpire = process.env.jwtAdminExpire;
+  const jwtAdminRefreshExpire = process.env.jwtAdminRefreshExpire;
+
   if (["user", "client"].includes(userType)) {
     if (tokenType == "accessToken") {
       return jwt.sign({ id: this.id }, jwtSecret, {

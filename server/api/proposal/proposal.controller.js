@@ -5,7 +5,7 @@ const Model = require("../../models");
 exports.createProject = async (req, res) => {
   try {
     req.body.userId = req.user._id;
-    await Model.Project.create(req.body);
+    await Model.Proposal.create(req.body);
     return res
       .status(sCode.CREATED)
       .json({ msg: constant.project.ADDED, success: true });
@@ -14,11 +14,10 @@ exports.createProject = async (req, res) => {
   }
 };
 
-
 exports.getProjectByProjectId = async (req, res) => {
   try {
     const projectId = req.params.projectId;
-    const data = await Model.Project.findById(projectId);
+    const data = await Model.Proposal.findById(projectId);
     if (!data) {
       return res
         .status(sCode.NOT_FOUND)
@@ -32,20 +31,25 @@ exports.getProjectByProjectId = async (req, res) => {
 
 exports.getProjectByUserId = async (req, res) => {
   try {
-    const userId = req.params.userId;
-    const data = await Model.Project.find({ userId });
-    return res.status(sCode.OK).json({ data, success: true });
+    const { page, limit, userId } = req.query;
+    const skip = (page - 1) * limit;
+    const data = await Model.Proposal.find({ userId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+    let length = await Model.Proposal.countDocuments({ userId });
+
+    return res.status(sCode.OK).json({ data: { data, length }, success: true });
   } catch (error) {
     res.status(500).json({ msg: "Server error", error: error.message });
   }
 };
 
-exports.updateProject = async (req, res) => {
+exports.updateProjectByUser = async (req, res) => {
   try {
-    const projectId = req.params.id;
     const body = req.body;
-    const data = await Model.Project.findByIdAndUpdate(
-      projectId,
+    const data = await Model.Proposal.findByIdAndUpdate(
+      body.projectId,
       { $set: body },
       {
         new: true,
@@ -56,7 +60,33 @@ exports.updateProject = async (req, res) => {
         .status(sCode.NOT_FOUND)
         .json({ msg: constant.NOT_FOUND, success: false });
     }
-    res.status(sCode.OK).json({ message: constant.UPDATED_RECORD, data });
+
+    return res
+      .status(sCode.OK)
+      .json({ message: constant.UPDATED_RECORD, data });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.updateProjectByAdmin = async (req, res) => {
+  try {
+    const body = req.body;
+    const data = await Model.Proposal.findByIdAndUpdate(
+      body.projectId,
+      { $set: body },
+      {
+        new: true,
+      }
+    );
+    if (!data) {
+      return res
+        .status(sCode.NOT_FOUND)
+        .json({ msg: constant.NOT_FOUND, success: false });
+    }
+    return res
+      .status(sCode.OK)
+      .json({ message: constant.UPDATED_RECORD, data });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }

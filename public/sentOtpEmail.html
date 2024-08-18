@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your OTP Code</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: #4A90E2;
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            letter-spacing: 1px;
+        }
+
+        .content {
+            padding: 30px;
+            text-align: center;
+        }
+
+        .otp-code {
+            font-size: 40px;
+            font-weight: bold;
+            color: #4A90E2;
+            letter-spacing: 10px;
+            background: #f3f3f3;
+            padding: 15px 30px;
+            display: inline-block;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        .message {
+            font-size: 16px;
+            color: #666666;
+            margin: 20px 0;
+        }
+
+        .button-container {
+            margin: 30px 0;
+        }
+
+        .button {
+            font-size: 16px;
+            color: #ffffff;
+            background-color: #4A90E2;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            display: inline-block;
+        }
+
+        .button:hover {
+            background-color: #357ABD;
+        }
+
+        .footer {
+            background-color: #f7f7f7;
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #888888;
+        }
+
+        .footer p {
+            margin: 5px 0;
+        }
+
+        @media only screen and (max-width: 600px) {
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .otp-code {
+                font-size: 32px;
+                letter-spacing: 8px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .button {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Verification Code</h1>
+        </div>
+        <div class="content">
+            <p class="message">To continue, please use the following OTP code. This code is valid for 10 minutes:</p>
+            <div class="otp-code">{{OTP_CODE}}</div>
+            <p class="message">If you didn't request this code, you can safely ignore this email.</p>
+        </div>
+        <div class="footer">
+            <p>Thank you for using our service!</p>
+            <p>&copy; 2024 Your Company Name. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+
+</html>

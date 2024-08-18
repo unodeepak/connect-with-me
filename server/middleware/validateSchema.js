@@ -1,27 +1,30 @@
 const Joi = require("joi");
 
-const validateSchema = (req, schemas) => {
-  const targetKeys = ["body", "params", "query"];
-  let errors = [];
-
-  targetKeys.forEach((target) => {
-    if (schemas[target]) {
-      const { error, value } = schemas[target].validate(req[target], {
-        abortEarly: false,
-      });
-      if (error) {
-        errors = errors.concat(error.details.map((detail) => detail.message));
-      } else {
-        req[target] = value; // Update the request object with validated data
-      }
+const validateSchema = (schemas) => {
+  return (req, res, next) => {
+    let schema = {};
+    if (req?.body && Object.keys(req.body).length && req?.method != "GET") {
+      schema.body = req.body;
     }
-  });
+    if (req.query && Object.keys(req.query).length) {
+      schema.query = req.query;
+      console.log(req.query, req.method);
+    }
+    if (req.params && Object.keys(req.params).length) {
+      schema.params = req.params;
+    }
+    const { error } = schemas.validate(schema);
 
-  if (errors.length > 0) {
-    return { isValid: false, errorMessage: errors.join(", ") };
-  }
+    if (error) {
+      return res.status(400).json({
+        status: "error",
+        message: "Validation failed",
+        details: error?.details?.[0]?.message,
+      });
+    }
 
-  return { isValid: true };
+    next();
+  };
 };
 
 module.exports = validateSchema;

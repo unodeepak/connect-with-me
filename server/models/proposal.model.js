@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const projectSchema = new Schema(
+const ProposalSchema = new Schema(
   {
     userId: { type: Schema.Types.ObjectId, ref: "user", required: true },
     client: {
@@ -14,7 +14,7 @@ const projectSchema = new Schema(
     description: { type: String, required: true },
     status: {
       type: String,
-      enum: ["pending", "approved", "running","completed", "cancelled"],
+      enum: ["pending", "approved", "running", "complete", "cancelled"],
       default: "pending",
     },
     cancelReason: { type: String, default: "" },
@@ -22,4 +22,4 @@ const projectSchema = new Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("project", projectSchema, "project");
+module.exports = mongoose.model("proposal", ProposalSchema, "proposal");

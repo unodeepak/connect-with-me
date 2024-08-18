@@ -1,10 +1,20 @@
 const mongoose = require("mongoose");
 
-const paymentHistorySchema = new mongoose.Schema(
+const TransactionSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      required: true,
+    },
+    creditedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    projectId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "project",
       required: true,
     },
     amount: { type: Number, required: true },
@@ -20,8 +30,10 @@ const paymentHistorySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+
+
 module.exports = mongoose.model(
-  "paymentHistory",
-  paymentHistorySchema,
-  "paymentHistory"
+  "transaction",
+  TransactionSchema,
+  "transaction"
 );
