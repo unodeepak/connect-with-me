@@ -7,9 +7,23 @@ const validateForm = require("../../middleware/validateSchema");
 
 route.post(
   "/addMoneyToUserWallet",
-  checkAuth(),
+  checkAuth("admin"),
   validateForm(schema.addMoneyToUserWallet),
   transaction.addMoneyToUserWallet
+);
+
+route.get(
+  "/getBalanceByUserId/:userId",
+  checkAuth(),
+  validateForm(schema.getBalanceByUserId),
+  transaction.getBalanceByUserId
+);
+
+route.get(
+  "/getTransactionHistory",
+  checkAuth(),
+  validateForm(schema.getTransactionHistory),
+  transaction.getTransactionHistory
 );
 
 module.exports = route;

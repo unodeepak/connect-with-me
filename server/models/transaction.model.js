@@ -15,13 +15,13 @@ const TransactionSchema = new mongoose.Schema(
     projectId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "project",
-      required: true,
+      // required: true,
     },
     amount: { type: Number, required: true },
     date: { type: Date, default: Date.now },
     status: {
       type: String,
-      enum: ["pending", "completed", "failed"],
+      enum: ["pending", "credited", "debited", "failed"],
       required: true,
       default: "pending",
     },
@@ -29,8 +29,6 @@ const TransactionSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
-
 
 module.exports = mongoose.model(
   "transaction",

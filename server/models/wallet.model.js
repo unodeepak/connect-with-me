@@ -6,7 +6,7 @@ const walletSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    balance: { type: Number, default: 0, min: 0 },
+    amount: { type: Number, default: 0, min: 0 },
   },
   { timestamps: true }
 );

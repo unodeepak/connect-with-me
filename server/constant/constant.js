@@ -9,6 +9,7 @@ module.exports = {
   SERVER_ERROR: "Server error occurred",
   UNAUTHORIZED: "Unauthorized access",
   FORBIDDEN: "Access forbidden",
+  FOUND: "Record found successfully",
 
   user: {
     USER_NOT_FOUND: "User not found",
@@ -17,7 +18,11 @@ module.exports = {
     PASS_CREATED: "Password created successfully",
     NOT_REGISTER: "You are not register with given",
     PASS_UPDATED: "Password updated successfully",
-    INVALID_OLD_PASS: "Invalid old password"
+    INVALID_OLD_PASS: "Invalid old password",
+  },
+
+  transaction: {
+    ADDED: "Amount added successfully",
   },
 
   project: {
