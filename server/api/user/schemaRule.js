@@ -54,7 +54,7 @@ module.exports = {
 
   createPassword: Joi.object({
     body: Joi.object({
-      password: Joi.string().length(8).required(),
+      password: Joi.string().min(8).required(),
     }),
   }),
 
