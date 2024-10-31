@@ -26,4 +26,10 @@ route.get(
   transaction.getTransactionHistory
 );
 
+route.get(
+  "/getTopBarTransaction",
+  checkAuth(),
+  transaction.getTopBarTransaction
+);
+
 module.exports = route;

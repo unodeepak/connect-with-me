@@ -11,8 +11,9 @@ const createAdmin = async () => {
         userType: "admin",
         isVerifiedEmail: true
       };
-      const newUser = await new User(body);
+      const newUser = new User(body);
       await newUser.save();
+      console.log(`--------------------> Admin created <------------------`)
     }
   } catch (err) {
     console.log("Error is : ", err);

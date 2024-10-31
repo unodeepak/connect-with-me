@@ -64,7 +64,8 @@ const checkAuth =
 
       next();
     } catch (err) {
-      return res.status(500).json({ msg: err.message, success: false });
+      console.log("error in checkAuth is : ", err);
+      return res.status(403).json({ msg: err.message, success: false });
     }
   };
 

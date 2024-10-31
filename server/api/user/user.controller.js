@@ -148,6 +148,9 @@ exports.verifyOtp = async (req, res) => {
     const newUser = new Model.User(user);
     const User = await newUser.save();
 
+    /* Create user wallet */
+    await Model.Wallet.create({ userId: User._id, amount: 0 });
+
     const data = {
       token: getUserToken("user", User),
     };
@@ -266,9 +269,10 @@ exports.verifyOtpPassword = async (req, res) => {
 
 exports.createPassword = async (req, res) => {
   const { password } = req.body;
+  const userId = req.user._id;
 
   try {
-    const user = await Model.User.findById(req.user._id);
+    const user = await Model.User.findById(userId);
     user.password = password;
     await user.save();
 
@@ -326,7 +330,7 @@ exports.changePassword = async (req, res) => {
 
 exports.getUserData = async (req, res) => {
   try {
-    const data = await Model.User.findById(req.user._id).select("-password");
+    const data = await Model.User.findById(req.user._id).select("-password -isActive -userType");
     if (!data) {
       return res
         .status(sCode.NOT_FOUND)
@@ -437,6 +441,8 @@ exports.getUserDashboard = async (req, res) => {
         data.completeCount = ele.count;
       }
     });
+    let wallet = await Model.Wallet.findOne({ userId });
+    data.amount = wallet?.amount || 0;
 
     return res.status(sCode.OK).json({ data, success: true });
   } catch (error) {

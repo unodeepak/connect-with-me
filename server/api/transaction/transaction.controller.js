@@ -1,6 +1,8 @@
 const constant = require("../../constant/constant");
 const sCode = require("../../constant/statusCode");
 const Model = require("../../models");
+let { ObjectId } = require("mongoose").Types;
+ObjectId = new ObjectId();
 
 exports.addMoneyToUserWallet = async (req, res) => {
   try {
@@ -44,7 +46,7 @@ exports.getTransactionHistory = async (req, res) => {
     const userId = req.user._id;
     const { page, limit } = req.query;
     const skip = (page - 1) * limit;
-    let data = await Model.Transaction.findOne({ userId })
+    let data = await Model.Transaction.find({ userId })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -53,6 +55,37 @@ exports.getTransactionHistory = async (req, res) => {
       .status(sCode.OK)
       .json({ data, msg: constant.FOUND, success: true });
   } catch (error) {
+    return res.status(500).json({ msg: "Server error", error: error.message });
+  }
+};
+
+exports.getTopBarTransaction = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    console.log({ userId });
+    let data = await Model.Transaction.aggregate([
+      {
+        $match: {
+          userId,
+        },
+      },
+      {
+        $group: {
+          _id: "$status",
+          amount: { $sum: "$amount" },
+        },
+      },
+    ]);
+
+    data = data?.[0] || {};
+    data.pending = data?.pending || 0;
+    data.success = data?.credited || 0;
+    data.failed = data?.failed || 0;
+    return res
+      .status(sCode.OK)
+      .json({ data, msg: constant.FOUND, success: true });
+  } catch (error) {
+    console.log("Error is : ", error);
     return res.status(500).json({ msg: "Server error", error: error.message });
   }
 };
