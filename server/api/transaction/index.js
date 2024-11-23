@@ -26,4 +26,11 @@ route.get(
   transaction.getTransactionHistory
 );
 
+route.get(
+  "/getTransactionTopBarData",
+  checkAuth(),
+  // validateForm(schema.getTransactionTopBarData),
+  transaction.getTransactionTopBarData
+);
+
 module.exports = route;

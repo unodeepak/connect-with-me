@@ -26,6 +26,12 @@ route.get(
   proposal.getProjectByUserId
 );
 
+route.get(
+  "/getProposalTopBarData",
+  checkAuth(),
+  proposal.getProposalTopBarData
+);
+
 route.put(
   "/updateProjectByAdmin",
   checkAuth(),

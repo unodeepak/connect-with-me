@@ -44,6 +44,19 @@ route.put(
   user.forgotPassword
 );
 
+route.get(
+  "/getUserTopBarDataForAdmin",
+  // checkAuth("admin"),
+  user.getUserTopBarDataForAdmin
+);
+
+route.get(
+  "/getAllUsers",
+  // checkAuth("admin"),
+  validateForm(schema.getAllUsers),
+  user.getAllUsers
+);
+
 route.get("/getUserDashboard", checkAuth(), user.getUserDashboard);
 
 module.exports = route;

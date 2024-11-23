@@ -1,30 +1,41 @@
 const Joi = require("joi");
+const { createValidator } = require("express-joi-validation");
+const validator = createValidator({ passError: true });
+const boom = require("@hapi/boom");
 
-const validateSchema = (schemas) => {
-  return (req, res, next) => {
-    let schema = {};
-    if (req?.body && Object.keys(req.body).length && req?.method != "GET") {
-      schema.body = req.body;
-    }
-    if (req.query && Object.keys(req.query).length) {
-      schema.query = req.query;
-      console.log(req.query, req.method);
-    }
-    if (req.params && Object.keys(req.params).length) {
-      schema.params = req.params;
-    }
-    const { error } = schemas.validate(schema);
+const validateSchema = (schema) => (req, res, next) => {
+  const validators = [];
 
-    if (error) {
-      return res.status(400).json({
-        status: "error",
-        message: "Validation failed",
-        details: error?.details?.[0]?.message,
+  if (schema.body) {
+    validators.push(validator.body(Joi.object(schema.body)));
+  }
+
+  if (schema.query) {
+    validators.push(validator.query(Joi.object(schema.query)));
+  }
+
+  if (schema.params) {
+    validators.push(validator.params(Joi.object(schema.params)));
+  }
+
+  const runValidators = (ind) => {
+    if (ind < validators.length) {
+      validators[ind](req, res, (err) => {
+        if (err) {
+          return res.status(400).json({
+            err: "Validation error",
+            msg: err.error.message,
+            details: err.error.details, // Detailed validation issues
+          });
+        }
+        runValidators(ind + 1);
       });
+    } else {
+      next();
     }
-
-    next();
   };
+
+  runValidators(0);
 };
 
 module.exports = validateSchema;

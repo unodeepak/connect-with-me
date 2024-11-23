@@ -1,8 +1,8 @@
 const Joi = require("joi");
 
 module.exports = {
-  createProject: Joi.object({
-    body: Joi.object({
+  createProject: {
+    body: {
       client: Joi.object({
         name: Joi.string().allow("", null).optional(),
         email: Joi.string().email().required(),
@@ -10,14 +10,16 @@ module.exports = {
           .pattern(/^[0-9]{10,15}$/)
           .allow("", null)
           .required(),
+        gender: Joi.string().valid("male", "female", "other").required()
       }).required(),
+      estimateTimeInDays: Joi.number().min(0).required(),
       projectName: Joi.string().required(),
       description: Joi.string().required(),
-    }),
-  }),
+    },
+  },
 
-  updateProjectByUser: Joi.object({
-    body: Joi.object({
+  updateProjectByUser: {
+    body: {
       client: Joi.object({
         name: Joi.string().allow("", null).optional(),
         email: Joi.string().email().optional().allow("", null),
@@ -29,25 +31,26 @@ module.exports = {
       projectName: Joi.string().optional().allow("", null),
       description: Joi.string().optional().allow("", null),
       projectId: Joi.string().required(),
-    }),
-  }),
+    },
+  },
 
-  getProjectByProjectId: Joi.object({
-    params: Joi.object({
+  getProjectByProjectId: {
+    params: {
       projectId: Joi.string().required(),
-    }),
-  }),
+    },
+  },
 
-  getProjectByUserId: Joi.object({
-    query: Joi.object({
+  getProjectByUserId: {
+    query: {
       userId: Joi.string().required(),
       page: Joi.number().min(1).required(),
-      limit: Joi.string().min(1).required(),
-    }),
-  }),
+      limit: Joi.number().min(1).required(),
+      status: Joi.string().valid("all", "pending", "approved", "running","completed", "cancelled")
+    },
+  },
 
-  updateProjectByAdmin: Joi.object({
-    body: Joi.object({
+  updateProjectByAdmin: {
+    body: {
       client: Joi.object({
         name: Joi.string().allow("", null).optional(),
         email: Joi.string().email().allow("", null).optional(),
@@ -63,6 +66,6 @@ module.exports = {
         .optional(),
       cancelReason: Joi.string().allow("", null).optional(),
       projectId: Joi.string().required(),
-    }),
-  }),
+    },
+  },
 };
