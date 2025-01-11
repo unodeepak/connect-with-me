@@ -14,10 +14,11 @@ const projectSchema = new Schema(
     description: { type: String, required: true },
     status: {
       type: String,
-      enum: ["pending", "approved", "running","completed", "cancelled"],
+      enum: ["pending", "approved", "running", "completed", "cancelled"],
       default: "pending",
     },
     cancelReason: { type: String, default: "" },
+    amount: { type: Number, min: 0, default: 0 },
   },
   { timestamps: true }
 );

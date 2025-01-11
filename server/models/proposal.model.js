@@ -12,9 +12,10 @@ const ProposalSchema = new Schema(
     },
     projectName: { type: String, required: true },
     description: { type: String, required: true },
+    estimateTimeInDays: { type: Number, required: true, min: 0 },
     status: {
       type: String,
-      enum: ["pending", "approved", "running", "complete", "cancelled"],
+      enum: ["pending", "approved", "running", "completed", "cancelled"],
       default: "pending",
     },
     cancelReason: { type: String, default: "" },

@@ -1,70 +1,72 @@
-// const Joi = require("joi");
-const Joi = require("@hapi/joi");
-
+const Joi = require("joi");
+const page = {
+  page: Joi.number().min(0).required(),
+  limit: Joi.number().min(1).required(),
+};
 module.exports = {
-  login: Joi.object({
-    body: Joi.object({
+  login: {
+    body: {
       email: Joi.string().email().required(),
       password: Joi.string().required(),
-    }),
-  }),
+    },
+  },
 
-  signup: Joi.object({
-    body: Joi.object({
+  signup: {
+    body: {
       firstName: Joi.string().required(),
       lastName: Joi.string().required(),
       email: Joi.string().email().lowercase().required(),
-    }),
-  }),
+    },
+  },
 
-  verifyOtp: Joi.object({
-    body: Joi.object({
+  verifyOtp: {
+    body: {
       email: Joi.string().email().required(),
       otp: Joi.string().length(6).required(),
-    }),
-  }),
+    },
+  },
 
-  sendOtp: Joi.object({
-    body: Joi.object({
+  sendOtp: {
+    body: {
       email: Joi.string().email().optional().allow("", null),
       phoneNumber: Joi.string().length(10).optional().allow("", null),
-    }),
-  }),
+    },
+  },
 
-  verifyOtpPassword: Joi.object({
-    body: Joi.object({
+  verifyOtpPassword: {
+    body: {
       email: Joi.string().email().optional().allow("", null),
       phoneNumber: Joi.string().length(10).optional().allow("", null),
       otp: Joi.string().required(),
-    }),
-  }),
+    },
+  },
 
-  changePassword: Joi.object({
-    body: Joi.object({
+  changePassword: {
+    body: {
       oldPassword: Joi.string().required(),
       newPassword: Joi.string().length(10).required(),
-    }),
-  }),
+    },
+  },
 
-  forgotPassword: Joi.object({
-    body: Joi.object({
+  forgotPassword: {
+    body: {
       password: Joi.string().length(10).required(),
-    }),
-  }),
+    },
+  },
 
-  createPassword: Joi.object({
-    body: Joi.object({
-      password: Joi.string().length(8).required(),
-    }),
-  }),
+  createPassword: {
+    body: {
+      password: Joi.string().min(8).required(),
+    },
+  },
 
-  updateRecord: Joi.object({
-    body: Joi.object({
+  updateRecord: {
+    body: {
       firstName: Joi.string().optional(),
       lastName: Joi.string().optional(),
       email: Joi.string().email().lowercase().optional(),
       phoneNumber: Joi.string()
-        .pattern(/^[0-9]{10,15}$/)
+        .regex(/^[0-9]{10,15}$/)
         .optional(),
       linkedinUri: Joi.string().uri().allow(null, "").optional(),
       fiverrUri: Joi.string().uri().allow(null, "").optional(),
@@ -78,7 +80,7 @@ module.exports = {
       dob: Joi.date().allow(null, "").optional(),
       address: Joi.string().allow(null, "").optional(),
       pincode: Joi.string()
-        .pattern(/^[0-9]{5,10}$/)
+        .regex(/^[0-9]{5,10}$/)
         .allow(null, "")
         .optional(),
       city: Joi.string().allow(null, "").optional(),
@@ -109,12 +111,21 @@ module.exports = {
           .message("{{#label}} is not a valid IFSC code!")
           .optional()
           .allow("", null),
+
         accountType: Joi.string()
           .valid("Savings", "Current", "Salary", "Fixed Deposit")
           .default("Savings")
           .optional()
           .allow("", null),
       }),
-    }),
-  }),
+    },
+  },
+  getAllUsers: {
+    query: {
+      isActive: Joi.boolean().allow("", null).optional(),
+      unVerifiedUser: Joi.boolean().allow("", null).optional(),
+      page: Joi.number().min(0).required(),
+      limit: Joi.number().min(1).required(),
+    },
+  },
 };

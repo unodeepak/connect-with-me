@@ -21,9 +21,14 @@ const TransactionSchema = new mongoose.Schema(
     date: { type: Date, default: Date.now },
     status: {
       type: String,
-      enum: ["pending", "credited", "debited", "failed"],
+      enum: ["pending", "success", "failed"],
       required: true,
       default: "pending",
+    },
+    transactionType: {
+      type: String,
+      enum: ["credited", "debited"],
+      default: "credited",
     },
     ssUri: { type: String }, // screenshot uri
   },

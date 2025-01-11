@@ -26,11 +26,31 @@ route.get(
   proposal.getProjectByUserId
 );
 
+route.get(
+  "/getProposalTopBarData",
+  checkAuth(),
+  proposal.getProposalTopBarData
+);
+
 route.put(
   "/updateProjectByAdmin",
   checkAuth(),
   validateForm(schema.updateProjectByAdmin),
   proposal.updateProjectByAdmin
+);
+
+route.get(
+  "/getProjectTopBarData",
+  // checkAuth("admin"),
+  // validateForm(schema.getProjectTopBarData),
+  proposal.getProjectTopBarData
+);
+
+route.get(
+  "/getProjectsForAdmin",
+  // checkAuth("admin"),
+  validateForm(schema.getProjectsForAdmin),
+  proposal.getProjectsForAdmin
 );
 
 module.exports = route;

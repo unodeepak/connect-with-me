@@ -21,6 +21,7 @@ const sendEmail = async (data) => {
       email: process.env.SENDER_EMAIL,
       name: process.env.SENDER_NAME,
     };
+    console.log(sender);
     const receivers = [
       {
         email: data.email,
@@ -30,6 +31,13 @@ const sendEmail = async (data) => {
     if (!(template || templatePath || data?.email || htmlContent)) {
       console.log("Check you sending email body. Something missing");
     }
+    console.log({
+      sender,
+      to: receivers,
+      subject: data?.subject,
+      htmlContent,
+      attachment: data?.attachment,
+    });
     tranEmailApi
       .sendTransacEmail({
         sender,
@@ -39,7 +47,7 @@ const sendEmail = async (data) => {
         attachment: data?.attachment,
       })
       .then((info) => {
-        console.log(`Email Sent to ${data.email}`);
+        console.log(`Email Sent to ${data.email}`, info);
       })
       .catch((error) => {
         console.log("Error is : ", error);

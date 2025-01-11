@@ -5,6 +5,7 @@ const generateOtp = require("../../utils/generateOtp");
 const generatePassword = require("../../utils/generatePassword");
 const { sendEmail } = require("../../services/email/emailService");
 const mongoose = require("mongoose");
+const moment = require("moment");
 const ObjectId = mongoose.Types.ObjectId;
 
 const getUserToken = (userType = "user", model) => {
@@ -407,27 +408,36 @@ exports.updateRecord = async (req, res) => {
 exports.getUserDashboard = async (req, res) => {
   try {
     const userId = req.user._id;
-    const allStatusData = await Model.Project.aggregate([
+    console.log({ userId });
+    const allStatusData = await Model.Proposal.aggregate([
       {
         $match: {
-          userId: new ObjectId(userId),
+          userId,
         },
       },
       {
         $group: {
           _id: "$status",
           count: { $sum: 1 },
+          amount: { $sum: "$amount" },
         },
       },
       {
         $project: {
           status: "$_id",
           count: 1,
+          amount: 1,
           _id: 0,
         },
       },
     ]);
-    const data = { runningCount: 0, completeCount: 0, pendingCount: 0 };
+    console.log({ allStatusData });
+    const data = {
+      runningCount: 0,
+      completeCount: 0,
+      pendingCount: 0,
+      amount: 0,
+    };
     allStatusData.forEach((ele) => {
       if (ele?.status == "running") {
         data.runningCount = ele.count;
@@ -435,10 +445,216 @@ exports.getUserDashboard = async (req, res) => {
         data.pendingCount = ele.count;
       } else if (ele?.status == "completed") {
         data.completeCount = ele.count;
+        data.amount += ele.amount;
       }
     });
 
     return res.status(sCode.OK).json({ data, success: true });
+  } catch (error) {
+    console.log("Error is : ", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.getUserTopBarDataForAdmin = async (req, res) => {
+  try {
+    const startDate = moment().subtract(2, "months").format();
+    const endDate = moment().format();
+
+    const startOfMonth = moment().startOf("month").format();
+    const thisMonthCond = {
+      createdAt: {
+        $gte: new Date(startOfMonth),
+        $lte: new Date(endDate),
+      },
+    };
+    const [
+      totalUser,
+      unVerifiedUser,
+      activeUser,
+      thisMonthTotalUser,
+      thisMonthUnVerifiedUser,
+      thisMonthActiveUser,
+    ] = await Promise.all([
+      Model.User.countDocuments({ isDelete: false }),
+      Model.User.countDocuments({
+        $or: [
+          { email: "" },
+          { phoneNumber: "" },
+          { email: { $exists: false } },
+          { phoneNumber: { $exists: false } },
+        ],
+        isDelete: false,
+      }),
+      Model.Proposal.aggregate([
+        {
+          $match: {
+            createdAt: {
+              $gte: new Date(startDate),
+              $lte: new Date(endDate),
+            },
+          },
+        },
+        {
+          $group: {
+            _id: "$userId",
+            count: { $sum: 1 },
+          },
+        },
+      ]),
+
+      Model.User.countDocuments({
+        isDelete: false,
+        ...thisMonthCond,
+      }),
+      Model.User.countDocuments({
+        $or: [
+          { email: "" },
+          { phoneNumber: "" },
+          { email: { $exists: false } },
+          { phoneNumber: { $exists: false } },
+        ],
+        isDelete: false,
+        ...thisMonthCond,
+      }),
+      Model.Proposal.aggregate([
+        {
+          $match: thisMonthCond,
+        },
+        {
+          $group: {
+            _id: "$userId",
+            count: { $sum: 1 },
+          },
+        },
+      ]),
+    ]);
+
+    const data = {
+      totalUser,
+      unVerifiedUser,
+      activeUser,
+      thisMonthTotalUser,
+      thisMonthUnVerifiedUser,
+      thisMonthActiveUser,
+    };
+    data.activeUser = activeUser?.length || 0;
+    data.inActiveUser = totalUser - data?.activeUser;
+
+    data.thisMonthActiveUser = thisMonthActiveUser?.length || 0;
+    data.thisMonthInActiveUser = thisMonthTotalUser - data?.thisMonthActiveUser;
+
+    return res.status(sCode.OK).json({ data, success: true });
+  } catch (error) {
+    console.log("Error is : ", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    const query = req.query;
+    const { page, limit } = query;
+    const skip = (page - 1) * limit;
+    const cond = { isDelete: false, userType: "user" };
+
+    let totalUser = 0;
+    let data = [];
+    console.log(query);
+    if (query.isActive !== false && query.isActive !== true) {
+      if (query.unVerifiedUser) {
+        cond.$or = [
+          { email: "" },
+          { phoneNumber: "" },
+          { email: { $exists: false } },
+          { phoneNumber: { $exists: false } },
+        ];
+      }
+
+      [totalUser, data] = await Promise.all([
+        Model.User.countDocuments(cond),
+        Model.User.find(cond)
+          .select("-bankDetails -password")
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit),
+      ]);
+    } else {
+      const startDate = moment().subtract(2, "months").format();
+      const endDate = moment().add(1, "day").format();
+
+      const cond = {};
+      if (query.isActive) {
+        cond.createdAt = {
+          $gte: new Date(startDate),
+          $lte: new Date(endDate),
+        };
+      }
+
+      [totalUser, data] = await Promise.all([
+        Model.Proposal.aggregate([
+          {
+            $match: cond,
+          },
+          {
+            $group: {
+              _id: "$userId",
+            },
+          },
+        ]),
+
+        Model.Proposal.aggregate([
+          {
+            $sort: { createdAt: -1 },
+          },
+          {
+            $match: cond,
+          },
+          {
+            $group: {
+              _id: "$userId",
+              count: { $sum: 1 },
+            },
+          },
+          {
+            $match: {
+              count: { $gte: 1 },
+            },
+          },
+          {
+            $project: {
+              _id: "$_id",
+            },
+          },
+          {
+            $skip: skip,
+          },
+          {
+            $limit: limit,
+          },
+          {
+            $lookup: {
+              from: "user",
+              localField: "_id",
+              foreignField: "_id",
+              as: "userData",
+            },
+          },
+          {
+            $unwind: "$userData",
+          },
+        ]),
+      ]);
+
+      totalUser = totalUser?.length || 0;
+      data = data.map((e) => {
+        return {
+          ...e.userData,
+        };
+      });
+    }
+
+    return res.status(sCode.OK).json({ data, totalUser, success: true });
   } catch (error) {
     console.log("Error is : ", error);
     res.status(500).json({ message: "Server error", error: error.message });

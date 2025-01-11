@@ -31,15 +31,72 @@ exports.getProjectByProjectId = async (req, res) => {
 
 exports.getProjectByUserId = async (req, res) => {
   try {
-    const { page, limit, userId } = req.query;
+    const { page, limit, userId, status } = req.query;
     const skip = (page - 1) * limit;
-    const data = await Model.Proposal.find({ userId })
+    const query = { userId };
+    if (status != "all") {
+      query.status = status;
+    }
+    const data = await Model.Proposal.find(query)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
-    let length = await Model.Proposal.countDocuments({ userId });
+    let length = await Model.Proposal.countDocuments(query);
 
     return res.status(sCode.OK).json({ data: { data, length }, success: true });
+  } catch (error) {
+    res.status(500).json({ msg: "Server error", error: error.message });
+  }
+};
+
+exports.getProposalTopBarData = async (req, res) => {
+  try {
+    const query = {
+      userId: req.user._id,
+    };
+    const data = await Model.Proposal.aggregate([
+      {
+        $match: query,
+      },
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 },
+          amount: { $sum: "" },
+        },
+      },
+    ]);
+
+    let proposal = {
+      success: 0,
+      pending: 0,
+      failed: 0,
+      completed: 0,
+      running: 0,
+      cancelled: 0,
+      approved: 0,
+      total: 0,
+      amount: 0,
+    };
+    for (let item of data) {
+      if (item?._id == "running") {
+        proposal.running = item?.count;
+      } else if (item?._id == "pending") {
+        proposal.pending = item?.count;
+      } else if (item?._id == "failed") {
+        proposal.failed = item?.count;
+      } else if (item?._id == "completed") {
+        proposal.amount = item?.amount || 0;
+        proposal.completed = item?.count;
+      } else if (item?._id == "approved") {
+        proposal.approved = item?.count;
+      } else if (item?._id == "cancelled") {
+        proposal.cancelled = item?.count;
+      }
+      proposal.total += item?.count;
+    }
+
+    return res.status(sCode.OK).json({ data: proposal, success: true });
   } catch (error) {
     res.status(500).json({ msg: "Server error", error: error.message });
   }
@@ -87,6 +144,79 @@ exports.updateProjectByAdmin = async (req, res) => {
     return res
       .status(sCode.OK)
       .json({ message: constant.UPDATED_RECORD, data });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.getProjectTopBarData = async (req, res) => {
+  try {
+    const [totalCount, data] = await Promise.all([
+      Model.Proposal.countDocuments(),
+      Model.Proposal.aggregate([
+        {
+          $group: {
+            _id: "$status",
+            count: { $sum: 1 },
+          },
+        },
+      ]),
+    ]);
+    const data1 = {
+      cancelled: 0,
+      completed: 0,
+      approved: 0,
+      running: 0,
+      pending: 0,
+      totalCount: totalCount,
+    };
+    data.forEach((item) => {
+      if (item?._id == "cancelled") {
+        data1.cancelled = item.count;
+      }
+      if (item?._id == "completed") {
+        data1.completed = item.count;
+      }
+      if (item?._id == "approved") {
+        data1.approved = item.count;
+      }
+      if (item?._id == "running") {
+        data1.running = item.count;
+      }
+      if (item?._id == "pending") {
+        data1.pending = item.count;
+      }
+    });
+
+    return res.status(sCode.OK).json({
+      data: data1,
+      message: constant.UPDATED_RECORD,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.getProjectsForAdmin = async (req, res) => {
+  try {
+    const { status, page, limit } = req.query;
+    const skip = (page - 1) * limit;
+    const query = {};
+    if (status !== "all") {
+      query.status = status;
+    }
+    const [totalCount, data] = await Promise.all([
+      Model.Proposal.countDocuments(query),
+      Model.Proposal.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+    ]);
+
+    return res.status(sCode.OK).json({
+      data: { totalCount, data },
+      message: constant.UPDATED_RECORD,
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
