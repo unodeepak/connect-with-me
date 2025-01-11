@@ -39,4 +39,18 @@ route.put(
   proposal.updateProjectByAdmin
 );
 
+route.get(
+  "/getProjectTopBarData",
+  // checkAuth("admin"),
+  // validateForm(schema.getProjectTopBarData),
+  proposal.getProjectTopBarData
+);
+
+route.get(
+  "/getProjectsForAdmin",
+  // checkAuth("admin"),
+  validateForm(schema.getProjectsForAdmin),
+  proposal.getProjectsForAdmin
+);
+
 module.exports = route;

@@ -1,4 +1,8 @@
 const Joi = require("joi");
+const page = {
+  page: Joi.number().min(0).required(),
+  limit: Joi.number().min(1).required(),
+};
 
 module.exports = {
   createProject: {
@@ -10,7 +14,7 @@ module.exports = {
           .pattern(/^[0-9]{10,15}$/)
           .allow("", null)
           .required(),
-        gender: Joi.string().valid("male", "female", "other").required()
+        gender: Joi.string().valid("male", "female", "other").required(),
       }).required(),
       estimateTimeInDays: Joi.number().min(0).required(),
       projectName: Joi.string().required(),
@@ -45,7 +49,14 @@ module.exports = {
       userId: Joi.string().required(),
       page: Joi.number().min(1).required(),
       limit: Joi.number().min(1).required(),
-      status: Joi.string().valid("all", "pending", "approved", "running","completed", "cancelled")
+      status: Joi.string().valid(
+        "all",
+        "pending",
+        "approved",
+        "running",
+        "completed",
+        "cancelled"
+      ),
     },
   },
 
@@ -66,6 +77,22 @@ module.exports = {
         .optional(),
       cancelReason: Joi.string().allow("", null).optional(),
       projectId: Joi.string().required(),
+    },
+  },
+
+  getProjectsForAdmin: {
+    query: {
+      ...page,
+      status: Joi.string()
+        .valid(
+          "all",
+          "pending",
+          "approved",
+          "running",
+          "completed",
+          "cancelled"
+        )
+        .required(),
     },
   },
 };
